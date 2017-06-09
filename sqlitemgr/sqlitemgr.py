@@ -1,10 +1,10 @@
 """
 
-..	module:: sqlitemgr
+..	currentmodule:: sqlitemgr
 	:platform: Linux, Unix, Windows
 	:synopsis: SQLite Manager class for managing databases, connections and tables.
 
-.. moduleauthor:: aescwork@protonmail.com
+.. moduleauthor:: Vollund Leysing aescwork@protonmail.com
 
 
 """
@@ -80,6 +80,8 @@ class SQLiteMgr:
 	def get_cursor(self):
 		""" 
 		This method creates and returns a cursor for executing SQL statements with the database connection. A connection must first have been created.
+		Returns:
+			cursor:	A cursor which can then be used by calling code elsewhere.
 		"""
 		if self.conn is None:
 			self.make_conn()
@@ -100,10 +102,11 @@ class SQLiteMgr:
 	def new_table(self, table_name):
 
 		""" 
-			Start the process to create a new table in the database.  (The name of the database to add the table to is the one assigned to self.db.) This method adds the 
-			beginning of an sql create statement to self.table_statement.  self.table_statement is the query that is executed to actually create the table. 
-			If self.table_statement is composed by calling the methods of this class, it always starts with "CREATE TABLE IF NOT EXISTS table_name (. Note the double quote at
-			the beginning of the table_statement: the table_statement is always preceded and concluded by double quotes.
+			Start the process to create a new table in the database.  (The name of the database to add the table to is the one assigned to self.db.) 
+			This method adds the beginning of an sql create statement to self.table_statement.  self.table_statement is the query that is executed 
+			to actually create the table.  If self.table_statement is composed by calling the methods of this class, it always starts 
+			with "CREATE TABLE IF NOT EXISTS table_name (. Note the double quote at the beginning of the table_statement: the table_statement 
+			is always preceded and concluded by double quotes.
 
 			Args:
 				table_name (str): the name for the table
@@ -180,6 +183,9 @@ class SQLiteMgr:
 		""" 
 		This method allows self.table_statement to be set directly rather than by method calls.  Follow this with
 		a call to create_table to execute the sql and add the table to the database.
+
+		Returns:
+			self (for method chaining)
 		""" 
 		self.table_statement = table_statement
 		return self
@@ -188,8 +194,8 @@ class SQLiteMgr:
 
 	def delete_table(self):
 		""" 
-		Delete a table in the database.  The names of the table which will be deleted and the database in which the table resides are those stored in
-		self.table and self.db.
+		Delete a table in the database.  The names of the table which will be deleted and the database in which the 
+		table resides are those stored in self.table and self.db.
 		"""
 
 		if self._conn_cursor_test_create():
@@ -207,6 +213,9 @@ class SQLiteMgr:
 	def create_db(self, db_name):
 		"""
 		Create a new database file.  The path/name of the database must first be assigned to self.db by the constructor or directly.
+
+		Args:
+			db_name (str):	The name of the database file to be created. (This should have a '.db' extension at the end of it.)
 		"""
 
 		if os.path.isfile(self.db) is False:
@@ -225,6 +234,9 @@ class SQLiteMgr:
 		""" 
 		Delete a database file.  The path/name of the database must first be assigned to self.db either by the constructor or directly assigning 
 		a value to the attribute.
+
+		Args:
+			db_name (str):	The name of the database file to be created. (This should have a '.db' extension at the end of it.)
 		"""
 		if db_name == self.db:
 			self.close_db()
@@ -239,10 +251,13 @@ class SQLiteMgr:
 			self._set_result_and_status("FAIL", "In SQLiteMgr Create db: database file " + db_name + " already exists.")
 
 
+
 	def get_number_tables_db(self):
 		""" 
-		Return the total number of all tables in the object's database.
-		
+		Executes a query against the database sqlite_master to the names of all the tables in the database.
+		Returns:
+				 the total number of all tables in the object's database (resulting from calling len() on the structure returned by cursor.fetchall())..
+	
 		"""
 		if self._conn_cursor_test_create():
 			try:
@@ -258,9 +273,16 @@ class SQLiteMgr:
 		if self.result == "OK":
 			return len(self.cursor.fetchall())
 
+
 	def get_number_rows_in_table(self, table_name):
 		""" 
 		Return the number of rows in table_name, assuming table_name is actually in self.db.
+	
+		Args:
+			table_name (str):	The name of the table whose rows are to be counted.
+		
+		Returns:
+				None (NoneType):	(if there was a problem obtaining the connection or the cursor.)
 		"""
 		if self._conn_cursor_test_create():
 			try:
@@ -277,16 +299,19 @@ class SQLiteMgr:
 
 	def consecutive_reindex(self, renumber_column, return_all_reordered=False, start_number=1):
 		""" 
+
 		Re-index all of the numbers in a number column of a table after one or more row deletions so that they are all consecutives.
 		Example: After deleting some rows from a table, we are left with rows whose numbers are 1, 3, 4, 7, 8, 10.  This method will
 		re-number all of the numbers so that they are 1, 2, 3, 4, 5, 6.
 
-		Uses the _ROWID_ column as a reference for updating the value in the renumber_column.   (Every sqlite database row is automatically given a _ROWID_.)
+		Uses the _ROWID_ column as a reference for updating the value in the renumber_column.   
+		(Every sqlite database row is automatically given a _ROWID_.)
 
 		Args:
 			number_column 		 (string):  The name of the row that has the actual row number for each row.
 			return_all_reordered (Boolean): If True, returns the dictionary used to keep track of old and new renumber_column numbers
 			start_number		 (int):	    The number to start with when re-ordering the renumber_column.
+
 		"""
 		
 		if self._conn_cursor_test_create():
@@ -327,6 +352,10 @@ class SQLiteMgr:
 		"""
 		Many of the methods of this class need a connection to a database and a cursor for executing statements.  
 		This method checks to make sure that both have been established.
+
+		Returns:
+				ret_val (boolean):		This will be either True if a connection and a cursor has been established, 
+										or False if one or both do not obtain.
 		"""
 		ret_val = True
 		if self.cursor is None:				# test if there is a cursor
@@ -344,7 +373,12 @@ class SQLiteMgr:
 	def _set_result_and_status(self, result, status):
 		"""
 		Set self.result and self.status here to help DRY out the code in the above methods.
+		
+		Args:
+			result (string):	the result of the operation performed by the calling method.
+			status (string):	the status (description) of the outcome of the operation performed by the calling method.
 		"""
 		self.result = result
 		self.status = status
+
 
