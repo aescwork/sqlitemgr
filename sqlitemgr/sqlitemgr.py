@@ -17,9 +17,6 @@ class SQLiteMgr:
 		
 		SQLite Manager class for managing databases, connections and tables.
 
-	.. note::
-		This is a note.
-
 	"""
 
 
