@@ -7,11 +7,6 @@ import sqlitemgr as sqm
 
 def prep_key_val():
 
-	"""
-	prep_db.py: This is a setup file used by the consecutive_reindex.py test to set up the sqlite database to execute the test.
-	This code was placed in this file to avoid 
-	"""
-
 	db_path = "../fixtures/key_val.db"
 
 	open(db_path, "w").close()	# empty out the key_val.db
