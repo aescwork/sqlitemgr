@@ -27,6 +27,32 @@ class SQLiteMgr:
 		Args: 
 			db (str): 		The name of the sqlite database the object is to access.
 
+		Members:
+					self.status (str):	
+										Describes the operation just undertaken by a method or it contains the error message from 
+										the except Exception if it was unsuccessful.
+					self.result (str):  
+										'FAIL' or 'OK'
+
+					self.db (str):		
+									The name of the sqlite database file.  If the database file has an extension (.db) it must be included.
+
+					self.table_statement (str):
+									The sql statement which is to be executed against the database.  Used for building the sql statement
+									by means of method chaining (see new_table(), add_table_column() and create_table() methods).
+
+					self.conn (Sqlite Connection):
+									The actual connection object to the database specified in self.db.
+
+					self.cursor (Sqlite Cursor):
+									The cursor for the connection stored in self.conn.  The cursor is used to execute sql statements
+									on an sqlite database.
+
+					self.method_compose_statement (Boolean):
+									Used by the  new_table(), add_table_column() and create_table() methods to determine if the
+									self.table_statement was composed using method chaining (as opposed to an sql statement passed-in
+									directly with set_table_statement()).
+			
 		"""
 
 		self.status = "NONE"
