@@ -1,0 +1,413 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>sqlitemgr package &mdash; Filework 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Filework 1.0 documentation" href="index.html" />
+    <link rel="prev" title="Welcome to sqlitemgr’s documentation!" href="index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to sqlitemgr’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Filework 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="sqlitemgr-package">
+<h1>sqlitemgr package<a class="headerlink" href="#sqlitemgr-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-sqlitemgr">
+<span id="sqlitemgr-module"></span><h2>sqlitemgr module<a class="headerlink" href="#module-sqlitemgr" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="sqlitemgr.SQLiteMgr">
+<em class="property">class </em><code class="descclassname">sqlitemgr.</code><code class="descname">SQLiteMgr</code><span class="sig-paren">(</span><em>db=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlitemgr.SQLiteMgr" title="Permalink to this definition">¶</a></dt>
+<dd><p>SQLite Manager class for managing databases, connections and tables.</p>
+<dl class="method">
+<dt id="sqlitemgr.SQLiteMgr.add_table_column">
+<code class="descname">add_table_column</code><span class="sig-paren">(</span><em>column_name</em>, <em>column_data_type</em>, <em>column_table_constraint=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.add_table_column"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlitemgr.SQLiteMgr.add_table_column" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Composes a part of self.table_statement needed for creating a single column. The basic syntax for creating a column for sqlite is:</dt>
+<dd>column name datatype TABLE CONSTRAINT.</dd>
+<dt>Args:</dt>
+<dd>column_name (str):                              the name of the column
+column_data_type (str):                 values: null, integer, real, text, blob
+column_table_constraint (str):  values: NOT NULL, UNIQUE, PRIMARY KEY, FOREIGN KEY, CHECK, DEFAULT</dd>
+<dt>Returns:</dt>
+<dd>self (for method chaining)</dd>
+</dl>
+<p>One or more calls to add_table_column (and create_table) methods can be chained one after the other:</p>
+<p>sqlmgrObject.add_table_column(&#8220;id&#8221;, &#8220;integer&#8221;, &#8220;NOT NULL&#8221;).add_table_column(&#8220;some_name&#8221;, text, &#8220;UNIQUE&#8221;).add_table_column(&#8220;owner&#8221;, text).create_table()</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlitemgr.SQLiteMgr.close_db">
+<code class="descname">close_db</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.close_db"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlitemgr.SQLiteMgr.close_db" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close the connection to the database.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlitemgr.SQLiteMgr.consecutive_reindex">
+<code class="descname">consecutive_reindex</code><span class="sig-paren">(</span><em>renumber_column</em>, <em>table=None</em>, <em>start_number=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.consecutive_reindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlitemgr.SQLiteMgr.consecutive_reindex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Re-index all of the numbers in a number column of a table after one or more row deletions so that they are all consecutives.
+Example: After deleting some rows from a table, we are left with rows whose numbers are 1, 3, 4, 7, 8, 10.  This method will
+re-number all of the numbers so that they are 1, 2, 3, 4, 5, 6.</p>
+<p>Uses the _ROWID_ column as a reference for updating the value in the renumber_column.   
+(Every sqlite database row is automatically given a _ROWID_.)</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>number_column            (string):  The name of the row that has the actual row number for each row.
+return_all_reordered (Boolean): If True, returns the dictionary used to keep track of old and new renumber_column numbers
+start_number             (int):     The number to start with when re-ordering the renumber_column.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlitemgr.SQLiteMgr.create_db">
+<code class="descname">create_db</code><span class="sig-paren">(</span><em>db=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.create_db"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlitemgr.SQLiteMgr.create_db" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new database file.  The path/name of the database must first be assigned to self.db by the constructor or directly.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>db_name (str):  The name of the database file to be created. (This should have a &#8216;.db&#8217; extension at the end of it.)</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlitemgr.SQLiteMgr.create_table">
+<code class="descname">create_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.create_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlitemgr.SQLiteMgr.create_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a table in the database.  This method executes the sql to create the table in the database.  
+It sets self.status to the error message thrown by the Exception if there was any problem.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlitemgr.SQLiteMgr.delete_db">
+<code class="descname">delete_db</code><span class="sig-paren">(</span><em>db_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.delete_db"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlitemgr.SQLiteMgr.delete_db" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete a database file.  The path/name of the database must first be assigned to self.db either by the constructor or directly assigning 
+a value to the attribute.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>db_name (str):  The name of the database file to be created. (This should have a &#8216;.db&#8217; extension at the end of it.)</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlitemgr.SQLiteMgr.delete_table">
+<code class="descname">delete_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.delete_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlitemgr.SQLiteMgr.delete_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete a table in the database.  The names of the table which will be deleted and the database in which the 
+table resides are those stored in self.table and self.db.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlitemgr.SQLiteMgr.get_cursor">
+<code class="descname">get_cursor</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.get_cursor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlitemgr.SQLiteMgr.get_cursor" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method creates and returns a cursor for executing SQL statements with the database connection. A connection must first have been created.
+Returns:</p>
+<blockquote>
+<div>cursor: A cursor which can then be used by calling code elsewhere.</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlitemgr.SQLiteMgr.get_number_rows_in_table">
+<code class="descname">get_number_rows_in_table</code><span class="sig-paren">(</span><em>table</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.get_number_rows_in_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlitemgr.SQLiteMgr.get_number_rows_in_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of rows in table, assuming table is actually in self.db.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>table (str):    The name of the table whose rows are to be counted.</dd>
+<dt>Returns:</dt>
+<dd>None (NoneType):        (if there was a problem obtaining the connection or the cursor.)</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlitemgr.SQLiteMgr.get_number_tables_db">
+<code class="descname">get_number_tables_db</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.get_number_tables_db"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlitemgr.SQLiteMgr.get_number_tables_db" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes a query against the database sqlite_master to the names of all the tables in the database.
+Returns:</p>
+<blockquote>
+<div>the total number of all tables in the object&#8217;s database (resulting from calling len() on the structure returned by cursor.fetchall())..</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlitemgr.SQLiteMgr.make_conn">
+<code class="descname">make_conn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.make_conn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlitemgr.SQLiteMgr.make_conn" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method creates and returns a connection.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlitemgr.SQLiteMgr.new_table">
+<code class="descname">new_table</code><span class="sig-paren">(</span><em>table</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.new_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlitemgr.SQLiteMgr.new_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start the process to create a new table in the database.  (The name of the database to add the table to is the one assigned to self.db.) 
+This method adds the beginning of an sql create statement to self.table_statement.  self.table_statement is the query that is executed 
+to actually create the table.  If self.table_statement is composed by calling the methods of this class, it always starts 
+with &#8220;CREATE TABLE IF NOT EXISTS table (. Note the double quote at the beginning of the table_statement: the table_statement 
+is always preceded and concluded by double quotes.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>table (str): the name for the table</dd>
+<dt>Returns:</dt>
+<dd>self (for method chaining)</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlitemgr.SQLiteMgr.set_table_statement">
+<code class="descname">set_table_statement</code><span class="sig-paren">(</span><em>table_statement</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.set_table_statement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlitemgr.SQLiteMgr.set_table_statement" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method allows self.table_statement to be set directly rather than by method calls.  Follow this with
+a call to create_table to execute the sql and add the table to the database.</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>self (for method chaining)</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-sqlitemgr">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-sqlitemgr" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">sqlitemgr.</code><code class="descname">SQLiteMgr</code><span class="sig-paren">(</span><em>db=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>SQLite Manager class for managing databases, connections and tables.</p>
+<dl class="method">
+<dt>
+<code class="descname">add_table_column</code><span class="sig-paren">(</span><em>column_name</em>, <em>column_data_type</em>, <em>column_table_constraint=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.add_table_column"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="docutils">
+<dt>Composes a part of self.table_statement needed for creating a single column. The basic syntax for creating a column for sqlite is:</dt>
+<dd>column name datatype TABLE CONSTRAINT.</dd>
+<dt>Args:</dt>
+<dd>column_name (str):                              the name of the column
+column_data_type (str):                 values: null, integer, real, text, blob
+column_table_constraint (str):  values: NOT NULL, UNIQUE, PRIMARY KEY, FOREIGN KEY, CHECK, DEFAULT</dd>
+<dt>Returns:</dt>
+<dd>self (for method chaining)</dd>
+</dl>
+<p>One or more calls to add_table_column (and create_table) methods can be chained one after the other:</p>
+<p>sqlmgrObject.add_table_column(&#8220;id&#8221;, &#8220;integer&#8221;, &#8220;NOT NULL&#8221;).add_table_column(&#8220;some_name&#8221;, text, &#8220;UNIQUE&#8221;).add_table_column(&#8220;owner&#8221;, text).create_table()</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">close_db</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.close_db"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Close the connection to the database.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">consecutive_reindex</code><span class="sig-paren">(</span><em>renumber_column</em>, <em>table=None</em>, <em>start_number=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.consecutive_reindex"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Re-index all of the numbers in a number column of a table after one or more row deletions so that they are all consecutives.
+Example: After deleting some rows from a table, we are left with rows whose numbers are 1, 3, 4, 7, 8, 10.  This method will
+re-number all of the numbers so that they are 1, 2, 3, 4, 5, 6.</p>
+<p>Uses the _ROWID_ column as a reference for updating the value in the renumber_column.   
+(Every sqlite database row is automatically given a _ROWID_.)</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>number_column            (string):  The name of the row that has the actual row number for each row.
+return_all_reordered (Boolean): If True, returns the dictionary used to keep track of old and new renumber_column numbers
+start_number             (int):     The number to start with when re-ordering the renumber_column.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">create_db</code><span class="sig-paren">(</span><em>db=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.create_db"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Create a new database file.  The path/name of the database must first be assigned to self.db by the constructor or directly.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>db_name (str):  The name of the database file to be created. (This should have a &#8216;.db&#8217; extension at the end of it.)</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">create_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.create_table"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Create a table in the database.  This method executes the sql to create the table in the database.  
+It sets self.status to the error message thrown by the Exception if there was any problem.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">delete_db</code><span class="sig-paren">(</span><em>db_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.delete_db"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Delete a database file.  The path/name of the database must first be assigned to self.db either by the constructor or directly assigning 
+a value to the attribute.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>db_name (str):  The name of the database file to be created. (This should have a &#8216;.db&#8217; extension at the end of it.)</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">delete_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.delete_table"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Delete a table in the database.  The names of the table which will be deleted and the database in which the 
+table resides are those stored in self.table and self.db.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_cursor</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.get_cursor"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>This method creates and returns a cursor for executing SQL statements with the database connection. A connection must first have been created.
+Returns:</p>
+<blockquote>
+<div>cursor: A cursor which can then be used by calling code elsewhere.</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_number_rows_in_table</code><span class="sig-paren">(</span><em>table</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.get_number_rows_in_table"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Return the number of rows in table, assuming table is actually in self.db.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>table (str):    The name of the table whose rows are to be counted.</dd>
+<dt>Returns:</dt>
+<dd>None (NoneType):        (if there was a problem obtaining the connection or the cursor.)</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_number_tables_db</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.get_number_tables_db"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Executes a query against the database sqlite_master to the names of all the tables in the database.
+Returns:</p>
+<blockquote>
+<div>the total number of all tables in the object&#8217;s database (resulting from calling len() on the structure returned by cursor.fetchall())..</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">make_conn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.make_conn"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>This method creates and returns a connection.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">new_table</code><span class="sig-paren">(</span><em>table</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.new_table"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Start the process to create a new table in the database.  (The name of the database to add the table to is the one assigned to self.db.) 
+This method adds the beginning of an sql create statement to self.table_statement.  self.table_statement is the query that is executed 
+to actually create the table.  If self.table_statement is composed by calling the methods of this class, it always starts 
+with &#8220;CREATE TABLE IF NOT EXISTS table (. Note the double quote at the beginning of the table_statement: the table_statement 
+is always preceded and concluded by double quotes.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>table (str): the name for the table</dd>
+<dt>Returns:</dt>
+<dd>self (for method chaining)</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">set_table_statement</code><span class="sig-paren">(</span><em>table_statement</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlitemgr.html#SQLiteMgr.set_table_statement"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>This method allows self.table_statement to be set directly rather than by method calls.  Follow this with
+a call to create_table to execute the sql and add the table to the database.</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>self (for method chaining)</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">sqlitemgr package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-sqlitemgr">sqlitemgr module</a></li>
+<li><a class="reference internal" href="#module-sqlitemgr">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to sqlitemgr&#8217;s documentation!</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/sqlitemgr.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to sqlitemgr’s documentation!"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Filework 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2017, aescwork.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
+    </div>
+  </body>
+</html>

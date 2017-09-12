@@ -13,11 +13,11 @@ class InstantiationTest(unittest.TestCase):
 
 
 	def testMemberResult(self):
-		self.assertEqual(self.smgr.result, "NONE")
+		self.assertEqual(self.smgr.result, "None")
 			
 
 	def testMemberStatus(self):
-		self.assertEqual(self.smgr.status, "NONE")
+		self.assertEqual(self.smgr.status, "None")
 
 
 

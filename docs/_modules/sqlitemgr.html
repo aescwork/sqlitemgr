@@ -1,0 +1,510 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>sqlitemgr &mdash; Filework 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Filework 1.0 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Filework 1.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for sqlitemgr</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">..	currentmodule:: sqlitemgr</span>
+<span class="sd">	:platform: Linux, Unix, Windows</span>
+<span class="sd">	:synopsis: SQLite Manager class for managing databases, connections and tables.</span>
+
+<span class="sd">.. moduleauthor:: aescwork@protonmail.com</span>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sqlite3</span> <span class="kn">as</span> <span class="nn">lite</span>
+
+
+<div class="viewcode-block" id="SQLiteMgr"><a class="viewcode-back" href="../sqlitemgr.html#sqlitemgr.SQLiteMgr">[docs]</a><span class="k">class</span> <span class="nc">SQLiteMgr</span><span class="p">:</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		</span>
+<span class="sd">		SQLite Manager class for managing databases, connections and tables.</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+
+		<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">		Args: </span>
+<span class="sd">			db (str): 		The name of the sqlite database the object is to access.</span>
+
+<span class="sd">		Members:</span>
+<span class="sd">					self.status (str):	</span>
+<span class="sd">										Describes the operation just undertaken by a method or it contains the error message from </span>
+<span class="sd">										the except Exception if it was unsuccessful.</span>
+<span class="sd">					self.result (str):  </span>
+<span class="sd">										&#39;FAIL&#39; or &#39;OK&#39;</span>
+
+<span class="sd">					self.db (str):		</span>
+<span class="sd">									The name of the sqlite database file.  If the database file has an extension (.db) it must be included.</span>
+
+<span class="sd">					self.table_statement (str):</span>
+<span class="sd">									The sql statement which is to be executed against the database.  Used for building the sql statement</span>
+<span class="sd">									by means of method chaining (see new_table(), add_table_column() and create_table() methods).</span>
+
+<span class="sd">					self.conn (Sqlite Connection):</span>
+<span class="sd">									The actual connection object to the database specified in self.db.</span>
+
+<span class="sd">					self.cursor (Sqlite Cursor):</span>
+<span class="sd">									The cursor for the connection stored in self.conn.  The cursor is used to execute sql statements</span>
+<span class="sd">									on an sqlite database.</span>
+
+<span class="sd">					self.method_compose_statement (Boolean):</span>
+<span class="sd">									Used by the  new_table(), add_table_column() and create_table() methods to determine if the</span>
+<span class="sd">									self.table_statement was composed using method chaining (as opposed to an sql statement passed-in</span>
+<span class="sd">									directly with set_table_statement()).</span>
+<span class="sd">			</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;None&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">result</span> <span class="o">=</span> <span class="s2">&quot;None&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">db</span> 
+		<span class="bp">self</span><span class="o">.</span><span class="n">table_statement</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="o">=</span> <span class="bp">None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="bp">None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">method_compose_statement</span> <span class="o">=</span> <span class="bp">False</span>
+
+
+	<span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+
+
+<div class="viewcode-block" id="SQLiteMgr.close_db"><a class="viewcode-back" href="../sqlitemgr.html#sqlitemgr.SQLiteMgr.close_db">[docs]</a>	<span class="k">def</span> <span class="nf">close_db</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">		Close the connection to the database.</span>
+<span class="sd">		&quot;&quot;&quot;</span> 
+	
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>	
+			<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="o">=</span> <span class="bp">None</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="bp">None</span></div>
+
+
+
+<div class="viewcode-block" id="SQLiteMgr.make_conn"><a class="viewcode-back" href="../sqlitemgr.html#sqlitemgr.SQLiteMgr.make_conn">[docs]</a>	<span class="k">def</span> <span class="nf">make_conn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">		This method creates and returns a connection.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+		<span class="k">try</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="o">=</span> <span class="n">lite</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">text_factory</span> <span class="o">=</span> <span class="nb">str</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;OK&quot;</span><span class="p">,</span><span class="s2">&quot;In SQLiteMgr make_conn, created connection to db &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">)</span>
+		<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;FAIL&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr make_conn: &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="o">=</span> <span class="bp">None</span>	
+
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span></div>
+
+
+<div class="viewcode-block" id="SQLiteMgr.get_cursor"><a class="viewcode-back" href="../sqlitemgr.html#sqlitemgr.SQLiteMgr.get_cursor">[docs]</a>	<span class="k">def</span> <span class="nf">get_cursor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">		This method creates and returns a cursor for executing SQL statements with the database connection. A connection must first have been created.</span>
+<span class="sd">		Returns:</span>
+<span class="sd">			cursor:	A cursor which can then be used by calling code elsewhere.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">make_conn</span><span class="p">()</span>
+
+		<span class="k">try</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;OK&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr get_cursor: created cursor&quot;</span><span class="p">)</span>
+		<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;FAIL&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr get_cursor: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="bp">None</span>
+
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span>	</div>
+
+
+	<span class="c1">### METHODS FOR COMPOSING AND EXECUTING AN SQL STATEMENT FOR CREATING A TABLE ###</span>
+
+
+<div class="viewcode-block" id="SQLiteMgr.new_table"><a class="viewcode-back" href="../sqlitemgr.html#sqlitemgr.SQLiteMgr.new_table">[docs]</a>	<span class="k">def</span> <span class="nf">new_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">):</span>
+
+		<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">			Start the process to create a new table in the database.  (The name of the database to add the table to is the one assigned to self.db.) </span>
+<span class="sd">			This method adds the beginning of an sql create statement to self.table_statement.  self.table_statement is the query that is executed </span>
+<span class="sd">			to actually create the table.  If self.table_statement is composed by calling the methods of this class, it always starts </span>
+<span class="sd">			with &quot;CREATE TABLE IF NOT EXISTS table (. Note the double quote at the beginning of the table_statement: the table_statement </span>
+<span class="sd">			is always preceded and concluded by double quotes.</span>
+
+<span class="sd">			Args:</span>
+<span class="sd">				table (str): the name for the table</span>
+<span class="sd">		</span>
+<span class="sd">			Returns:</span>
+<span class="sd">				self (for method chaining)</span>
+
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="n">table</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">table_statement</span> <span class="o">=</span> <span class="s2">&quot;CREATE TABLE IF NOT EXISTS &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">+</span> <span class="s2">&quot;(&quot;</span>
+	
+		<span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="SQLiteMgr.add_table_column"><a class="viewcode-back" href="../sqlitemgr.html#sqlitemgr.SQLiteMgr.add_table_column">[docs]</a>	<span class="k">def</span> <span class="nf">add_table_column</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column_name</span><span class="p">,</span> <span class="n">column_data_type</span><span class="p">,</span> <span class="n">column_table_constraint</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">		Composes a part of self.table_statement needed for creating a single column. The basic syntax for creating a column for sqlite is:</span>
+<span class="sd">			column name datatype TABLE CONSTRAINT.  </span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			column_name (str):				the name of the column</span>
+<span class="sd">			column_data_type (str):			values: null, integer, real, text, blob</span>
+<span class="sd">			column_table_constraint (str):	values: NOT NULL, UNIQUE, PRIMARY KEY, FOREIGN KEY, CHECK, DEFAULT</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">			self (for method chaining)</span>
+
+<span class="sd">		One or more calls to add_table_column (and create_table) methods can be chained one after the other:</span>
+
+<span class="sd">		sqlmgrObject.add_table_column(&quot;id&quot;, &quot;integer&quot;, &quot;NOT NULL&quot;).add_table_column(&quot;some_name&quot;, text, &quot;UNIQUE&quot;).add_table_column(&quot;owner&quot;, text).create_table()</span>
+
+<span class="sd">		&quot;&quot;&quot;</span> 
+		<span class="bp">self</span><span class="o">.</span><span class="n">method_compose_statement</span> <span class="o">=</span> <span class="bp">True</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">table_statement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table_statement</span> <span class="o">+</span> <span class="n">column_name</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">column_data_type</span> 
+		<span class="k">if</span> <span class="n">column_table_constraint</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">table_statement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table_statement</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">column_table_constraint</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">table_statement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table_statement</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span>
+
+		<span class="k">return</span> <span class="bp">self</span></div>
+	
+
+<div class="viewcode-block" id="SQLiteMgr.create_table"><a class="viewcode-back" href="../sqlitemgr.html#sqlitemgr.SQLiteMgr.create_table">[docs]</a>	<span class="k">def</span> <span class="nf">create_table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">		Create a table in the database.  This method executes the sql to create the table in the database.  </span>
+<span class="sd">		It sets self.status to the error message thrown by the Exception if there was any problem.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		
+		<span class="n">size_ts</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table_statement</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">table_statement</span><span class="p">[</span><span class="n">size_ts</span> <span class="o">-</span> <span class="mi">2</span><span class="p">:</span><span class="n">size_ts</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;, &quot;</span><span class="p">:</span>			<span class="c1"># if self.table_statement has a &quot;, &quot; at the end of it, chop it off</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">table_statement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table_statement</span><span class="p">[:</span><span class="n">size_ts</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span>
+		
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">method_compose_statement</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">table_statement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table_statement</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span>	<span class="c1"># append a &#39;&quot;)&#39; to the end of self.table_statement if method calls were used </span>
+																<span class="c1"># to compose the table_statement</span>
+
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conn_cursor_test_create</span><span class="p">():</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table_statement</span><span class="p">)</span> 						<span class="c1"># execute self.table_statement</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;OK&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr create_table: executed statement to create table&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span>
+			<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;FAIL&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr create_table, ERROR: &quot;</span> <span class="o">+</span>  <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;FAIL&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr create_table: Unable to create connection or cursor for executing commands on the table.&quot;</span><span class="p">)</span></div>
+
+		
+
+	<span class="c1">### ###</span>
+		
+
+<div class="viewcode-block" id="SQLiteMgr.set_table_statement"><a class="viewcode-back" href="../sqlitemgr.html#sqlitemgr.SQLiteMgr.set_table_statement">[docs]</a>	<span class="k">def</span> <span class="nf">set_table_statement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_statement</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">		This method allows self.table_statement to be set directly rather than by method calls.  Follow this with</span>
+<span class="sd">		a call to create_table to execute the sql and add the table to the database.</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">			self (for method chaining)</span>
+<span class="sd">		&quot;&quot;&quot;</span> 
+		<span class="bp">self</span><span class="o">.</span><span class="n">table_statement</span> <span class="o">=</span> <span class="n">table_statement</span>
+		<span class="k">return</span> <span class="bp">self</span></div>
+
+
+
+<div class="viewcode-block" id="SQLiteMgr.delete_table"><a class="viewcode-back" href="../sqlitemgr.html#sqlitemgr.SQLiteMgr.delete_table">[docs]</a>	<span class="k">def</span> <span class="nf">delete_table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">		Delete a table in the database.  The names of the table which will be deleted and the database in which the </span>
+<span class="sd">		table resides are those stored in self.table and self.db.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conn_cursor_test_create</span><span class="p">():</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+				<span class="k">try</span><span class="p">:</span>
+					<span class="n">statement</span> <span class="o">=</span> <span class="s2">&quot;DROP TABLE IF EXISTS &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">executescript</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;OK&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr delete_table, deleted table &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span>
+				<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;FAIL&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr delete_table, ERROR: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;FAIL&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr delete_table, unable to establish connection and/or get the cursor.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SQLiteMgr.create_db"><a class="viewcode-back" href="../sqlitemgr.html#sqlitemgr.SQLiteMgr.create_db">[docs]</a>	<span class="k">def</span> <span class="nf">create_db</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Create a new database file.  The path/name of the database must first be assigned to self.db by the constructor or directly.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			db_name (str):	The name of the database file to be created. (This should have a &#39;.db&#39; extension at the end of it.)</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">db</span><span class="p">:</span>
+			<span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span>
+
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="nb">open</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;OK&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr create_db: Created &quot;</span> <span class="o">+</span> <span class="n">db</span><span class="p">)</span>
+			<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;FAIL&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr create_db, ERROR: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;FAIL&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr Create db: database file &quot;</span> <span class="o">+</span> <span class="n">db</span> <span class="o">+</span> <span class="s2">&quot; already exists.&quot;</span><span class="p">)</span></div>
+
+	
+
+<div class="viewcode-block" id="SQLiteMgr.delete_db"><a class="viewcode-back" href="../sqlitemgr.html#sqlitemgr.SQLiteMgr.delete_db">[docs]</a>	<span class="k">def</span> <span class="nf">delete_db</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_name</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">		Delete a database file.  The path/name of the database must first be assigned to self.db either by the constructor or directly assigning </span>
+<span class="sd">		a value to the attribute.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			db_name (str):	The name of the database file to be created. (This should have a &#39;.db&#39; extension at the end of it.)</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="n">db_name</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">close_db</span><span class="p">()</span>
+		<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">db_name</span><span class="p">):</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">db_name</span><span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;OK&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr delete_db: Deleted &quot;</span> <span class="o">+</span> <span class="n">db_name</span><span class="p">)</span>
+			<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;FAIL&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr delete_db, ERROR: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;FAIL&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr Create db: database file &quot;</span> <span class="o">+</span> <span class="n">db_name</span> <span class="o">+</span> <span class="s2">&quot; already exists.&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="SQLiteMgr.get_number_tables_db"><a class="viewcode-back" href="../sqlitemgr.html#sqlitemgr.SQLiteMgr.get_number_tables_db">[docs]</a>	<span class="k">def</span> <span class="nf">get_number_tables_db</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">		Executes a query against the database sqlite_master to the names of all the tables in the database.</span>
+<span class="sd">		Returns:</span>
+<span class="sd">				 the total number of all tables in the object&#39;s database (resulting from calling len() on the structure returned by cursor.fetchall())..</span>
+<span class="sd">	</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">ret_val</span> <span class="o">=</span> <span class="bp">None</span>
+
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conn_cursor_test_create</span><span class="p">():</span>
+			
+			<span class="k">try</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT name FROM sqlite_master WHERE type=&#39;table&#39; ORDER BY name;&quot;</span><span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;OK&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr get_number_tables_db: accessed db: &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">)</span>
+				<span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+				<span class="n">ret_val</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+			<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;FAIL&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr get_number_tables_db, ERROR: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;FAIL&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr get_number_tables_db, unable to establish connection and/or get the cursor.&quot;</span><span class="p">)</span>
+		
+	
+		<span class="k">return</span> <span class="n">ret_val</span></div>
+		
+
+<div class="viewcode-block" id="SQLiteMgr.get_number_rows_in_table"><a class="viewcode-back" href="../sqlitemgr.html#sqlitemgr.SQLiteMgr.get_number_rows_in_table">[docs]</a>	<span class="k">def</span> <span class="nf">get_number_rows_in_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">		Return the number of rows in table, assuming table is actually in self.db.</span>
+<span class="sd">	</span>
+<span class="sd">		Args:</span>
+<span class="sd">			table (str):	The name of the table whose rows are to be counted.</span>
+<span class="sd">		</span>
+<span class="sd">		Returns:</span>
+<span class="sd">				None (NoneType):	(if there was a problem obtaining the connection or the cursor.)</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conn_cursor_test_create</span><span class="p">():</span>
+
+			<span class="n">ret_val</span> <span class="o">=</span> <span class="bp">None</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT Count(*) FROM &quot;</span> <span class="o">+</span> <span class="n">table</span><span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;OK&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr get_number_rows_in_table: accessed db: &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">+</span> <span class="s2">&quot; table: &quot;</span> <span class="o">+</span> <span class="n">table</span><span class="p">)</span>
+				<span class="n">ret_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+			<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;FAIL&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr get_number_rows_in_table, ERROR: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+			
+			<span class="k">return</span> <span class="n">ret_val</span>
+
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;FAIL&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr delete_table, unable to establish connection and/or get the cursor.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SQLiteMgr.consecutive_reindex"><a class="viewcode-back" href="../sqlitemgr.html#sqlitemgr.SQLiteMgr.consecutive_reindex">[docs]</a>	<span class="k">def</span> <span class="nf">consecutive_reindex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">renumber_column</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">start_number</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; </span>
+
+<span class="sd">		Re-index all of the numbers in a number column of a table after one or more row deletions so that they are all consecutives.</span>
+<span class="sd">		Example: After deleting some rows from a table, we are left with rows whose numbers are 1, 3, 4, 7, 8, 10.  This method will</span>
+<span class="sd">		re-number all of the numbers so that they are 1, 2, 3, 4, 5, 6.</span>
+
+<span class="sd">		Uses the _ROWID_ column as a reference for updating the value in the renumber_column.   </span>
+<span class="sd">		(Every sqlite database row is automatically given a _ROWID_.)</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			number_column 		 (string):  The name of the row that has the actual row number for each row.</span>
+<span class="sd">			return_all_reordered (Boolean): If True, returns the dictionary used to keep track of old and new renumber_column numbers</span>
+<span class="sd">			start_number		 (int):	    The number to start with when re-ordering the renumber_column.</span>
+
+<span class="sd">		&quot;&quot;&quot;</span>
+		
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">table</span><span class="p">:</span>
+			<span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span>
+		
+		<span class="n">reordered_numbers</span> <span class="o">=</span> <span class="p">{}</span>			<span class="c1"># contains {&lt;old renumber_column number:&lt;new renumber_column number&gt;}</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conn_cursor_test_create</span><span class="p">():</span>
+
+			<span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;SELECT _ROWID_, &quot;</span> <span class="o">+</span> <span class="n">renumber_column</span> <span class="o">+</span> <span class="s2">&quot; FROM &quot;</span> <span class="o">+</span> <span class="n">table</span>			<span class="c1"># select all values for _ROWID_ and number_column from table</span>
+			
+			<span class="n">index</span> <span class="o">=</span> <span class="n">start_number</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT _ROWID_, &quot;</span> <span class="o">+</span> <span class="n">renumber_column</span> <span class="o">+</span> <span class="s2">&quot; FROM &quot;</span> <span class="o">+</span> <span class="n">table</span><span class="p">)</span>
+				<span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+			<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;FAIL&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr consecutive_reindex: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+				<span class="k">return</span> <span class="bp">None</span>
+
+			<span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;UPDATE &quot;</span> <span class="o">+</span> <span class="n">table</span> <span class="o">+</span> <span class="s2">&quot; SET &quot;</span> <span class="o">+</span> <span class="n">renumber_column</span> <span class="o">+</span> <span class="s2">&quot;= ? WHERE _ROWID_= ?&quot;</span>
+
+			<span class="k">try</span><span class="p">:</span>
+				<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+					<span class="n">reordered_numbers</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">index</span>
+					<span class="n">index</span> <span class="o">=</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span>
+				
+				<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;OK&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr consecutive_reindex: accessed &quot;</span> <span class="o">+</span> <span class="n">table</span><span class="p">)</span>
+					
+			<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;FAIL&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr consecutive_reindex: &quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+					
+		<span class="k">else</span><span class="p">:</span>	
+			<span class="bp">self</span><span class="o">.</span><span class="n">_set_result_and_status</span><span class="p">(</span><span class="s2">&quot;FAIL&quot;</span><span class="p">,</span> <span class="s2">&quot;In SQLiteMgr consecutive_reindex, unable to establish connection and/or get the cursor.&quot;</span><span class="p">)</span>
+			
+		<span class="k">return</span> <span class="n">reordered_numbers</span></div>
+
+
+	<span class="k">def</span> <span class="nf">_conn_cursor_test_create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Many of the methods of this class need a connection to a database and a cursor for executing statements.  </span>
+<span class="sd">		This method checks to make sure that both have been established.</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">				ret_val (boolean):		This will be either True if a connection and a cursor has been established, </span>
+<span class="sd">										or False if one or both do not obtain.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">ret_val</span> <span class="o">=</span> <span class="bp">True</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>				<span class="c1"># test if there is a cursor</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>			<span class="c1"># if no cursor, test if there is a conn</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">make_conn</span><span class="p">()</span>				<span class="c1"># if no conn, try to create a conn</span>
+				<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">result</span> <span class="o">==</span> <span class="s2">&quot;FAIL&quot;</span><span class="p">:</span>		<span class="c1"># if we can&#39;t make a connection, return False.</span>
+					<span class="k">return</span> <span class="bp">False</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">get_cursor</span><span class="p">()</span>				<span class="c1"># if we can&#39;t get a cursor, return False.</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">result</span> <span class="o">==</span> <span class="s2">&quot;FAIL&quot;</span><span class="p">:</span>
+				<span class="k">return</span> <span class="bp">False</span>
+
+		<span class="k">return</span> <span class="n">ret_val</span>
+
+
+	<span class="k">def</span> <span class="nf">_set_result_and_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">status</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Set self.result and self.status here to help DRY out the code in the above methods.</span>
+<span class="sd">		</span>
+<span class="sd">		Args:</span>
+<span class="sd">			result (string):	the result of the operation performed by the calling method.</span>
+<span class="sd">			status (string):	the status (description) of the outcome of the operation performed by the calling method.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">result</span> <span class="o">=</span> <span class="n">result</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">status</span></div>
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Filework 1.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2017, aescwork.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
+    </div>
+  </body>
+</html>

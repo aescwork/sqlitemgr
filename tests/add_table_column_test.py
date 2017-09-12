@@ -15,7 +15,6 @@ class AddTableColumnTest(unittest.TestCase):
 
 
 	def test_add_table_column(self):
-
 		self.assertEqual(self.sm.table_statement, self.final_statement)	
 
 

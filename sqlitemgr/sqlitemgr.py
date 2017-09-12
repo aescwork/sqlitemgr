@@ -4,7 +4,7 @@
 	:platform: Linux, Unix, Windows
 	:synopsis: SQLite Manager class for managing databases, connections and tables.
 
-.. moduleauthor:: Vollund Leysing aescwork@protonmail.com
+.. moduleauthor:: aescwork aescwork@protonmail.com
 
 
 """
@@ -55,11 +55,11 @@ class SQLiteMgr:
 			
 		"""
 
-		self.status = "NONE"
-		self.result = "NONE"
+		self.status = "None"
+		self.result = "None"
 		self.db = db 
 		self.table_statement = ""
-		self.table_name = ""
+		self.table = ""
 		self.conn = None
 		self.cursor = None
 		self.method_compose_statement = False
@@ -92,6 +92,7 @@ class SQLiteMgr:
 
 		try:
 			self.conn = lite.connect(self.db)
+			self.conn.text_factory = str
 			self._set_result_and_status("OK","In SQLiteMgr make_conn, created connection to db " + self.db)
 		except Exception as e:
 			self._set_result_and_status("FAIL", "In SQLiteMgr make_conn: " + self.db)
@@ -122,24 +123,24 @@ class SQLiteMgr:
 	### METHODS FOR COMPOSING AND EXECUTING AN SQL STATEMENT FOR CREATING A TABLE ###
 
 
-	def new_table(self, table_name):
+	def new_table(self, table):
 
 		""" 
 			Start the process to create a new table in the database.  (The name of the database to add the table to is the one assigned to self.db.) 
 			This method adds the beginning of an sql create statement to self.table_statement.  self.table_statement is the query that is executed 
 			to actually create the table.  If self.table_statement is composed by calling the methods of this class, it always starts 
-			with "CREATE TABLE IF NOT EXISTS table_name (. Note the double quote at the beginning of the table_statement: the table_statement 
+			with "CREATE TABLE IF NOT EXISTS table (. Note the double quote at the beginning of the table_statement: the table_statement 
 			is always preceded and concluded by double quotes.
 
 			Args:
-				table_name (str): the name for the table
+				table (str): the name for the table
 		
 			Returns:
 				self (for method chaining)
 
 		"""
-		self.table_name = table_name
-		self.table_statement = "CREATE TABLE IF NOT EXISTS " + self.table_name + "("
+		self.table = table
+		self.table_statement = "CREATE TABLE IF NOT EXISTS " + self.table + "("
 	
 		return self
 
@@ -190,7 +191,7 @@ class SQLiteMgr:
 		if self._conn_cursor_test_create():
 			try:
 				self.cursor.execute(self.table_statement) 						# execute self.table_statement
-				self._set_result_and_status("OK", "In SQLiteMgr create_table: executed statement to create table" + self.table_name)
+				self._set_result_and_status("OK", "In SQLiteMgr create_table: executed statement to create table" + self.table)
 			except Exception as e:
 				self._set_result_and_status("FAIL", "In SQLiteMgr create_table, ERROR: " +  str(e))
 
@@ -222,18 +223,18 @@ class SQLiteMgr:
 		"""
 
 		if self._conn_cursor_test_create():
-			if self.table_name != "":
+			if self.table != "":
 				try:
-					statement = "DROP TABLE IF EXISTS " + self.table_name + ";"
+					statement = "DROP TABLE IF EXISTS " + self.table + ";"
 					self.cursor.executescript(statement)
-					self._set_result_and_status("OK", "In SQLiteMgr delete_table, deleted table " + self.table_name)
+					self._set_result_and_status("OK", "In SQLiteMgr delete_table, deleted table " + self.table)
 				except Exception as e:
 					self._set_result_and_status("FAIL", "In SQLiteMgr delete_table, ERROR: " + str(e))
 			else:
 				self._set_result_and_status("FAIL", "In SQLiteMgr delete_table, unable to establish connection and/or get the cursor.")
 
 
-	def create_db(self, db_name):
+	def create_db(self, db=None):
 		"""
 		Create a new database file.  The path/name of the database must first be assigned to self.db by the constructor or directly.
 
@@ -241,16 +242,18 @@ class SQLiteMgr:
 			db_name (str):	The name of the database file to be created. (This should have a '.db' extension at the end of it.)
 		"""
 
-		if os.path.isfile(self.db) is False:
+		if not db:
+			db = self.db
+
+		if not os.path.isfile(db):
 			try:
-				open(db_name, "w").close()
-				self._set_result_and_status("OK", "In SQLiteMgr create_db: Created " + db_name)
+				open(db, "w").close()
+				self._set_result_and_status("OK", "In SQLiteMgr create_db: Created " + db)
 			except Exception as e:
 				self._set_result_and_status("FAIL", "In SQLiteMgr create_db, ERROR: " + str(e))
-
 		else:
-			self._set_result_and_status("FAIL", "In SQLiteMgr Create db: database file " + self.db + " already exists.")
-			
+			self._set_result_and_status("FAIL", "In SQLiteMgr Create db: database file " + db + " already exists.")
+
 	
 
 	def delete_db(self, db_name):
@@ -282,45 +285,51 @@ class SQLiteMgr:
 				 the total number of all tables in the object's database (resulting from calling len() on the structure returned by cursor.fetchall())..
 	
 		"""
+		ret_val = None
+
 		if self._conn_cursor_test_create():
+			
 			try:
 				self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;")
 				self._set_result_and_status("OK", "In SQLiteMgr get_number_tables_db: accessed db: " + self.db)
+				rows = self.cursor.fetchall()
+				ret_val = len(rows)
 			except Exception as e:
 				self._set_result_and_status("FAIL", "In SQLiteMgr get_number_tables_db, ERROR: " + str(e))
-				return None
 		else:
 			self._set_result_and_status("FAIL", "In SQLiteMgr get_number_tables_db, unable to establish connection and/or get the cursor.")
-			return None
 		
-		if self.result == "OK":
-			return len(self.cursor.fetchall())
+	
+		return ret_val
+		
 
-
-	def get_number_rows_in_table(self, table_name):
+	def get_number_rows_in_table(self, table):
 		""" 
-		Return the number of rows in table_name, assuming table_name is actually in self.db.
+		Return the number of rows in table, assuming table is actually in self.db.
 	
 		Args:
-			table_name (str):	The name of the table whose rows are to be counted.
+			table (str):	The name of the table whose rows are to be counted.
 		
 		Returns:
 				None (NoneType):	(if there was a problem obtaining the connection or the cursor.)
 		"""
 		if self._conn_cursor_test_create():
+
+			ret_val = None
 			try:
-				self.cursor.execute("SELECT Count(*) FROM " + table_name)
-				self._set_result_and_status("OK", "In SQLiteMgr get_number_rows_in_table: accessed db: " + self.db + " table: " + table_name)
+				self.cursor.execute("SELECT Count(*) FROM " + table)
+				self._set_result_and_status("OK", "In SQLiteMgr get_number_rows_in_table: accessed db: " + self.db + " table: " + table)
+				ret_val = self.cursor.fetchone()[0]
 			except Exception as e:
 				self._set_result_and_status("FAIL", "In SQLiteMgr get_number_rows_in_table, ERROR: " + str(e))
+			
+			return ret_val
 
-			return self.cursor.fetchone()[0]
 		else:
 			self._set_result_and_status("FAIL", "In SQLiteMgr delete_table, unable to establish connection and/or get the cursor.")
-			return None
 
 
-	def consecutive_reindex(self, renumber_column, return_all_reordered=False, start_number=1):
+	def consecutive_reindex(self, renumber_column, table=None, start_number=1):
 		""" 
 
 		Re-index all of the numbers in a number column of a table after one or more row deletions so that they are all consecutives.
@@ -337,20 +346,23 @@ class SQLiteMgr:
 
 		"""
 		
+		if not table:
+			table = self.table
+		
+		reordered_numbers = {}			# contains {<old renumber_column number:<new renumber_column number>}
 		if self._conn_cursor_test_create():
-			reordered_numbers = {}			# contains {<old renumber_column number:<new renumber_column number>}
 
-			query = "SELECT _ROWID_, " + renumber_column + " FROM " + self.table_name			# select all values for _ROWID_ and number_column from self.table
+			query = "SELECT _ROWID_, " + renumber_column + " FROM " + table			# select all values for _ROWID_ and number_column from table
 			
 			index = start_number
 			try:
-				self.cursor.execute("SELECT _ROWID_, fruit_val from fruit_keys_and_values")
+				self.cursor.execute("SELECT _ROWID_, " + renumber_column + " FROM " + table)
 				rows = self.cursor.fetchall()
 			except Exception as e:
-				self._set_result_and_status("FAIL", "In SQLiteMgr consecutive_reindex: ", str(e))
-				return 
+				self._set_result_and_status("FAIL", "In SQLiteMgr consecutive_reindex: " + str(e))
+				return None
 
-			query = "UPDATE " + self.table_name + " SET " + renumber_column + "=? WHERE _ROWID_=?"
+			query = "UPDATE " + table + " SET " + renumber_column + "= ? WHERE _ROWID_= ?"
 
 			try:
 				for row in rows:
@@ -359,7 +371,7 @@ class SQLiteMgr:
 					index = index + 1
 				
 				self.conn.commit()
-				self._set_result_and_status("OK", "In SQLiteMgr consecutive_reindex: accessed " + self.table_name)
+				self._set_result_and_status("OK", "In SQLiteMgr consecutive_reindex: accessed " + table)
 					
 			except Exception as e:
 				self._set_result_and_status("FAIL", "In SQLiteMgr consecutive_reindex: ", str(e))
@@ -367,8 +379,7 @@ class SQLiteMgr:
 		else:	
 			self._set_result_and_status("FAIL", "In SQLiteMgr consecutive_reindex, unable to establish connection and/or get the cursor.")
 			
-		if return_all_reordered:
-			return reordered_numbers
+		return reordered_numbers
 
 
 	def _conn_cursor_test_create(self):
@@ -403,5 +414,6 @@ class SQLiteMgr:
 		"""
 		self.result = result
 		self.status = status
+
 
 

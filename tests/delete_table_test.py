@@ -18,10 +18,10 @@ class DeleteTableTest(unittest.TestCase):
 	def setUp(self):
 		self.sm = sqm.SQLiteMgr("../fixtures/fruit.db")  
 		self.sm.set_table_statement("CREATE TABLE IF NOT EXISTS nuts(Nmbr INT PRIMARY KEY, Called TEXT UNIQUE, Description TEXT)").create_table()
-		self.sm.table_name = "nuts"
-		self.table_exists= self.check_sqlite_master()		# should return True
+		self.table_exists = self.check_sqlite_master()		# should return True
+		self.sm.table = "nuts"
 		self.sm.delete_table()
-		self.table_exists_after_delete= self.check_sqlite_master()		# should return False 
+		self.table_exists_after_delete = self.check_sqlite_master()		# should return False 
 
 	def test_table_exists(self):
 		self.assertEqual(self.table_exists, True)

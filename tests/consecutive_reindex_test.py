@@ -63,13 +63,12 @@ class ConsecutiveReindexTest(unittest.TestCase):
 		self.reindexed_comp = [(u'apple', 1), (u'strawberry', 2), (u'raspberry', 3), (u'kiwi', 4), (u'grapefruit', 5), (u'pineapple', 6)]
 
 		self.sm = sqm.SQLiteMgr("../fixtures/key_val.db")  
-		self.sm.table_name = "fruit_keys_and_values"
-		self.result = self.sm.consecutive_reindex("fruit_val", True)
+		self.sm.table = "fruit_keys_and_values"
+		self.result = self.sm.consecutive_reindex("fruit_val")
 
 
 		self.sm.cursor.execute("SELECT * FROM fruit_keys_and_values")
 		self.reindexed = self.sm.cursor.fetchall()
-
 
 	def test_consecutive_reindex(self):
 		self.assertEqual(self.comp_dict, self.result)
